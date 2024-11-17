@@ -1,5 +1,5 @@
 import { Controller } from "./Controller";
-import { Entity, Model, Position } from "./Model";
+import { Model } from "./Model";
 import "./style.css";
 
 export class View {
@@ -18,14 +18,6 @@ export class View {
 
     this.ctx = ctx;
     this.render = this.render.bind(this); // Bind the render method
-
-    for (let i = 0; i < 100; i++) {
-      model.entities.push(
-        Entity.create({
-          position: new Position(Math.random() * 800, Math.random() * 1000),
-        })
-      );
-    }
   }
 
   renderEntities() {

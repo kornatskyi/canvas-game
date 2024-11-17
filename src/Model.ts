@@ -1,3 +1,4 @@
+import { Config } from "./config";
 import { checkAABBCollision, SpatialHashGrid } from "./SpatialHashGrid";
 type EntityParams = {
   id?: string;
@@ -16,11 +17,12 @@ export class Dimensions {
 export class Entity {
   private _position: Position;
   private _dimensions: Dimensions;
-  public id: string;
-  public color: string;
+  id: string;
+  color: string;
+  alive = true;
   constructor(id?: string) {
     this._position = new Position(0, 0);
-    this._dimensions = new Dimensions(10, 20);
+    this._dimensions = new Dimensions(50, 100);
     this.id = id ?? crypto.randomUUID();
     this.color = `rgb(${Math.random() * 255}, ${Math.random() * 255}, ${
       Math.random() * 255
@@ -50,6 +52,8 @@ export class Entity {
   }
 
   static create({ position, id }: EntityParams) {
+    console.log(id);
+
     const e = new Entity(id);
     if (position) {
       e.position = position;
@@ -63,27 +67,42 @@ export class Model {
   public entities: Entity[];
   public player: Entity;
   constructor() {
-    this.player = Entity.create({ position: new Position(100, 100) });
-    this._space = new SpatialHashGrid(20);
+    this.player = Entity.create({
+      position: new Position(100, 100),
+      id: "player",
+    });
+    this._space = new SpatialHashGrid(Config.numberOfSpacialCells);
     this.entities = [this.player];
+
+    for (let i = 0; i < Config.randomEntitiesToRender; i++) {
+      this.entities.push(
+        Entity.create({
+          position: new Position(Math.random() * 800, Math.random() * 1000),
+        })
+      );
+    }
+    console.log(this.entities);
   }
 
   update() {
     // Clear the grid before each update
     this._space.clear();
 
+    // filter out dead entities
+    this.entities = this.entities.filter((e) => e.alive);
+
     // Update entity positions and insert them into the grid
     for (const entity of this.entities) {
-      // entity.move(/* amount */, /* direction */);
       this._space.insert(entity);
     }
-    let colliding = 0;
     // Detect collisions
     for (const entity of this.entities) {
       const possibleCollisions = this._space.retrieve(entity);
       for (const otherEntity of possibleCollisions) {
         if (checkAABBCollision(entity, otherEntity)) {
-          colliding++;
+          if (entity.id === "player") {
+            otherEntity.alive = false;
+          }
           // Handle collision between entity and otherEntity
         }
       }

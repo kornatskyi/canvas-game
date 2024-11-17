@@ -1,4 +1,4 @@
-import { Entity } from "./main";
+import { Entity } from "./Model";
 
 export class SpatialHashGrid {
   private cellSize: number;
