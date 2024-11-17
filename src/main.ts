@@ -21,7 +21,7 @@ class Entity {
   public color: string;
   constructor(id?: string) {
     this._position = new Position(0, 0);
-    this._dimensions = new Dimensions(100, 50);
+    this._dimensions = new Dimensions(10, 20);
     this.id = id ?? crypto.randomUUID();
     this.color = `rgb(${Math.random() * 255}, ${Math.random() * 255}, ${
       Math.random() * 255
@@ -144,7 +144,7 @@ class Model {
   public player: Entity;
   constructor() {
     this.player = Entity.create({ position: new Position(100, 100) });
-    this._space = new SpatialHashGrid(100);
+    this._space = new SpatialHashGrid(20);
     this.entities = [this.player];
   }
 
@@ -157,14 +157,13 @@ class Model {
       // entity.move(/* amount */, /* direction */);
       this._space.insert(entity);
     }
-
+    let colliding = 0;
     // Detect collisions
     for (const entity of this.entities) {
       const possibleCollisions = this._space.retrieve(entity);
       for (const otherEntity of possibleCollisions) {
         if (checkAABBCollision(entity, otherEntity)) {
-          console.log(entity.id + " is colliding with " + otherEntity.id);
-
+          colliding++;
           // Handle collision between entity and otherEntity
         }
       }
@@ -173,36 +172,32 @@ class Model {
 }
 
 class View {
-  canvas: HTMLCanvasElement;
+  canvas = document.getElementsByTagName("canvas").item(0)!;
   ctx: CanvasRenderingContext2D;
   model: Model;
+
+  // for calculating fps
+  fps = 0;
+  frameCount = 0;
+  lastFpsUpdateTime = 0;
+
   constructor(model: Model) {
     this.model = model;
-    // get first canvas
-    const c = document.getElementsByTagName("canvas").item(0);
-    if (!c) {
-      throw "Can't find canvas element on the page";
-    }
-    this.canvas = c;
-    const ctx = this.canvas.getContext("2d");
-    if (!ctx) {
-      throw "Couldn't get canvas' context!";
-    }
+    const ctx = this.canvas.getContext("2d")!;
+
     this.ctx = ctx;
     this.render = this.render.bind(this); // Bind the render method
 
-    model.entities.push(
-      ...[
-        Entity.create({ position: new Position(50, 200) }),
-        Entity.create({ position: new Position(200, 300) }),
-      ]
-    );
+    for (let i = 0; i < 100; i++) {
+      model.entities.push(
+        Entity.create({
+          position: new Position(Math.random() * 800, Math.random() * 1000),
+        })
+      );
+    }
   }
 
-  render() {
-    // Clear the canvas
-    this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
-
+  renderEntities() {
     // Draw
     for (const e of this.model.entities) {
       // Generate a random color for each entity
@@ -230,6 +225,27 @@ class View {
         e.position.y + e.dimensions.height / 2
       );
     }
+  }
+
+  render() {
+    // Clear the canvas
+    this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
+
+    // Render entities
+    this.renderEntities();
+
+    // FPS calculation
+    const now = Date.now();
+
+    // Update FPS every second
+    this.frameCount++;
+    if (now - this.lastFpsUpdateTime >= 1000) {
+      this.fps = this.frameCount;
+      this.frameCount = 0;
+      this.lastFpsUpdateTime = now;
+    }
+
+    // Log frame time
 
     // Request the next frame
     requestAnimationFrame(this.render);
@@ -270,31 +286,64 @@ class Controller {
   }
 }
 
-const delay = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
+enum GameState {
+  RUNNING,
+  STOPPED,
+}
+interface UIUpdateParams {
+  gameState?: GameState;
+  fps?: number;
+  tps?: number;
+  numbOfEntities?: number;
+}
+class UI {
+  gameStateElement = document.getElementById("game-state")!;
+  fpsElement = document.getElementById("fps")!;
+  tpsElement = document.getElementById("tps")!;
+  numbOfEntitiesElement = document.getElementById("number-of-entities")!;
 
-const gameSateDiv = document.getElementById("game-state")!;
+  update({ gameState, fps, numbOfEntities, tps }: UIUpdateParams) {
+    this.gameStateElement.textContent =
+      gameState === undefined ? "Unknown" : GameState[gameState];
+    this.fpsElement.textContent = fps?.toString() ?? "";
+    this.tpsElement.textContent = tps?.toString() ?? "";
+    this.numbOfEntitiesElement.textContent = numbOfEntities?.toString() ?? "";
+  }
+}
+
+const delay = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
 
 const init = async () => {
   const model = new Model();
   const view = new View(model);
   const controller = new Controller(model, view);
+  const ui = new UI();
   view.render();
 
-  let gameState: "RUNNING" | "STOPPED" = "RUNNING";
-  gameSateDiv.textContent = gameState;
+  let gameState = GameState.RUNNING;
+  ui.gameStateElement.textContent = GameState[gameState];
   document.addEventListener("keydown", (e) => {
     if (e.key === " ") {
-      gameState = gameState === "RUNNING" ? "STOPPED" : "RUNNING";
-      gameSateDiv.textContent = gameState;
+      gameState =
+        gameState === GameState.RUNNING ? GameState.STOPPED : GameState.RUNNING;
+      ui.gameStateElement.textContent = GameState[gameState];
     }
   });
 
   const startModel = async () => {
     while (true) {
-      if (gameState === "RUNNING") {
+      let startTime = Date.now();
+      if (gameState === GameState.RUNNING) {
         model.update();
         controller.applyControls();
       }
+      ui.update({
+        fps: view.fps,
+        tps: Date.now() - startTime,
+        gameState: gameState,
+        numbOfEntities: model.entities.length,
+      });
+
       await delay(1000 / 60);
     }
   };
