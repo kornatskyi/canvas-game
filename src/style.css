@@ -1,3 +1,33 @@
+#dashboard {
+  position: absolute;
+  display: grid;
+  grid-template-columns: auto 1fr; /* Label column and value column */
+  gap: 0px 20px; /* Spacing between rows and columns */
+  width: 400px; /* Optional: Set a fixed width */
+  padding: 10px;
+  border: 1px solid #ccc; /* Optional: Border around the dashboard */
+  border-radius: 8px; /* Optional: Rounded corners */
+  /* background-color: #c1eafa;  */
+  font-family: Arial, sans-serif;
+  /* margin-bottom: 20px; */
+  right: 140px;
+  top:90px;
+}
+
+.dashboard-item {
+  display: contents; /* Allows proper alignment of grid children */
+}
+
+.label {
+  text-align: left;
+  font-weight: bold;
+}
+
+.value {
+  text-align: right;
+}
+
+ 
 :root {
   font-family: Inter, system-ui, Avenir, Helvetica, Arial, sans-serif;
   line-height: 1.5;

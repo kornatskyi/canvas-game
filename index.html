@@ -10,12 +10,25 @@
 
 <body>
   <div id="app">
-    <div>
-      Game state: <span id="game-state"></span>
-      FPS: <span id="fps"></span>
-      TPS: <span id="tps"></span>
-      Number of entities: <span id="number-of-entities"></span>
+    <div id="dashboard">
+      <div class="dashboard-item">
+        <span class="label">Game state:</span>
+        <span id="game-state" class="value"></span>
+      </div>
+      <div class="dashboard-item">
+        <span class="label">FPS:</span>
+        <span id="fps" class="value"></span>
+      </div>
+      <div class="dashboard-item">
+        <span class="label">TPS:</span>
+        <span id="tps" class="value"></span>
+      </div>
+      <div class="dashboard-item">
+        <span class="label">Number of entities:</span>
+        <span id="number-of-entities" class="value"></span>
+      </div>
     </div>
+
     <canvas id="canvas" width="1000" height="800" style="background-color: rgb(65, 66, 66);"></canvas>
   </div>
   <script type="module" src="/src/main.ts"></script>
