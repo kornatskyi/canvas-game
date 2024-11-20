@@ -1,5 +1,6 @@
+import { Config } from "./config";
 import { Controller } from "./Controller";
-import { Model } from "./Model";
+import { Model, Monster } from "./Model";
 import "./style.css";
 
 export class View {
@@ -47,6 +48,16 @@ export class View {
         e.position.x + e.dimensions.width / 2,
         e.position.y + e.dimensions.height / 2
       );
+
+      if (e instanceof Monster) {
+        this.ctx.fillStyle = Config.healthBarColor;
+        this.ctx.fillRect(
+          e.position.x,
+          e.position.y - 5,
+          Config.healthUnitWidth * e.health,
+          Config.healthUnitHeight
+        );
+      }
     }
   }
 

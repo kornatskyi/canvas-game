@@ -19,10 +19,10 @@ export class Entity {
   private _dimensions: Dimensions;
   id: string;
   color: string;
-  alive = true;
+  isAlive = true;
   constructor(id?: string) {
     this._position = new Position(0, 0);
-    this._dimensions = new Dimensions(50, 100);
+    this._dimensions = Config.entityDefaultDimensions();
     this.id = id ?? crypto.randomUUID();
     this.color = `rgb(${Math.random() * 255}, ${Math.random() * 255}, ${
       Math.random() * 255
@@ -62,6 +62,25 @@ export class Entity {
   }
 }
 
+export class Monster extends Entity {
+  health: number;
+
+  constructor(health: number, id?: string) {
+    super(id);
+    this.health = health;
+  }
+
+  static create({ position, id }: EntityParams) {
+    console.log(id);
+
+    const e = new Monster(Config.monsterDefaultHealth, id);
+    if (position) {
+      e.position = position;
+    }
+    return e;
+  }
+}
+
 export class Model {
   private _space: SpatialHashGrid;
   public entities: Entity[];
@@ -76,7 +95,7 @@ export class Model {
 
     for (let i = 0; i < Config.randomEntitiesToRender; i++) {
       this.entities.push(
-        Entity.create({
+        Monster.create({
           position: new Position(Math.random() * 800, Math.random() * 1000),
         })
       );
@@ -89,7 +108,7 @@ export class Model {
     this._space.clear();
 
     // filter out dead entities
-    this.entities = this.entities.filter((e) => e.alive);
+    this.entities = this.entities.filter((e) => e.isAlive);
 
     // Update entity positions and insert them into the grid
     for (const entity of this.entities) {
@@ -101,7 +120,7 @@ export class Model {
       for (const otherEntity of possibleCollisions) {
         if (checkAABBCollision(entity, otherEntity)) {
           if (entity.id === "player") {
-            otherEntity.alive = false;
+            otherEntity.isAlive = false;
           }
           // Handle collision between entity and otherEntity
         }
