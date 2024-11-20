@@ -4,6 +4,7 @@ type EntityParams = {
   id?: string;
   position?: Position;
   dimensions?: Dimensions;
+  color?: string;
 };
 
 export class Position {
@@ -51,12 +52,18 @@ export class Entity {
     this._position.y += amount * Math.sin(radians); // Move along the y-axis
   }
 
-  static create({ position, id }: EntityParams) {
+  static create({ position, id, color, dimensions }: EntityParams) {
     console.log(id);
 
     const e = new Entity(id);
     if (position) {
       e.position = position;
+    }
+    if (dimensions) {
+      e.dimensions = dimensions;
+    }
+    if (color) {
+      e.color = color;
     }
     return e;
   }
@@ -88,6 +95,7 @@ export class Model {
   constructor() {
     this.player = Entity.create({
       position: new Position(100, 100),
+      color: "red",
       id: "player",
     });
     this._space = new SpatialHashGrid(Config.numberOfSpacialCells);
