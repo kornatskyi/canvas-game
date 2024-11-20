@@ -70,11 +70,27 @@ export class Entity {
 }
 
 export class Monster extends Entity {
-  health: number;
+  private _health: number;
+  private _maxHealth: number;
 
   constructor(health: number, id?: string) {
     super(id);
-    this.health = health;
+    this._maxHealth = health;
+    this._health = health;
+  }
+
+  public get health(): number {
+    return this._health;
+  }
+  public set health(value: number) {
+    this._health = value;
+    if (this.health < 0) {
+      this.isAlive = false;
+    }
+  }
+
+  public get maxHealth(): number {
+    return this._maxHealth;
   }
 
   static create({ position, id }: EntityParams) {
@@ -92,6 +108,8 @@ export class Model {
   private _space: SpatialHashGrid;
   public entities: Entity[];
   public player: Entity;
+
+  private _numberOfUpdates = 0;
   constructor() {
     this.player = Entity.create({
       position: new Position(100, 100),
@@ -112,6 +130,7 @@ export class Model {
   }
 
   update() {
+    this._numberOfUpdates++;
     // Clear the grid before each update
     this._space.clear();
 
@@ -128,7 +147,11 @@ export class Model {
       for (const otherEntity of possibleCollisions) {
         if (checkAABBCollision(entity, otherEntity)) {
           if (entity.id === "player") {
-            otherEntity.isAlive = false;
+            if (otherEntity instanceof Monster) {
+              if (this._numberOfUpdates % 60 === 0) {
+                otherEntity.health--;
+              }
+            }
           }
           // Handle collision between entity and otherEntity
         }

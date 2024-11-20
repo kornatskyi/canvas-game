@@ -43,9 +43,15 @@ export class View {
       this.ctx.textBaseline = "middle"; // Center align text vertically
 
       // Draw the ID text in the middle of the entity
- 
 
       if (e instanceof Monster) {
+        this.ctx.fillStyle = Config.reducedHealthBarColor;
+        this.ctx.fillRect(
+          e.position.x,
+          e.position.y - 5,
+          Config.healthUnitWidth * e.maxHealth,
+          Config.healthUnitHeight
+        );
         this.ctx.fillStyle = Config.healthBarColor;
         this.ctx.fillRect(
           e.position.x,

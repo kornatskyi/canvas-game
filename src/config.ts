@@ -12,4 +12,5 @@ export class Config {
   static healthUnitHeight = 3
 
   static healthBarColor = "green"
+  static reducedHealthBarColor = "red"
 }
